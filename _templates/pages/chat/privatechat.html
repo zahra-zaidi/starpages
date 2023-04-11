@@ -1,0 +1,53 @@
+<!--
+Define in dashboards/views.py file
+context.update({
+    'layout': KTTheme.setLayout('default.html', context),
+})
+-->
+{% extends layout %}
+
+{% load i18n %}
+
+{% block title %}{% translate "Dashboard" %}{% endblock %}
+
+{% block content %}
+
+<!--begin::Row-->
+<div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+
+
+    <div class="d-flex align-items-center justify-content-end ">
+        <a href="#" class="btn btn-sm fw-bold btn-primary" data-bs-toggle="modal"
+        data-bs-target="#kt_modal_users_search"> + Add Contact</a>
+    </div>
+
+
+
+    <div class="col-md-5 col-lg-5 col-xl-5 col-xxl-5 ">
+        {% include 'pages/chat/privatechatsidebar.html' %}     
+    </div>
+    <div class="col-md-7 col-lg-7 col-xl-7 col-xxl-7 ">   
+        {% include 'pages/chat/privatechatmessenger.html' %}
+    </div>
+
+    <!--end::Col-->
+</div>
+<!--end::Row-->
+
+<!--begin::Row-->
+
+<!--end::Row-->
+
+<!--begin::Row-->
+
+<!--end::Row-->
+
+<!--begin::Row-->
+
+<!--end::Row-->
+
+<!--begin::Row-->
+
+<!--end::Row-->
+
+{% endblock content %}
