@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse,HttpResponseRedirect
 from .models import Messages
 from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-
-class Privatechat(TemplateView):
+class Privatechat(LoginRequiredMixin , TemplateView):
     # Default template file
     # Refer to dashboards/urls.py file for more pages and template files
     template_name = 'pages/chat/privatechat.html'
@@ -26,15 +26,15 @@ class Privatechat(TemplateView):
         allusers=User.objects.all()
 
         user = self.request.user
-        messages = Messages.get_message (user=user)
+        messages = Messages.get_message(user=user)
         active_direct=None
         directs=None
 
         if messages:
-            message=messages[0]
-            active_direct= message["user"].username
+            message = messages[0]
+            active_direct = message["user"].username
             directs = Messages.objects.filter(user=self.request.user, reciepient=message["user"])
-            directs.update (is_read=True)
+            directs.update(is_read=True)
 
             for message in messages:
                 if message['user'].username == active_direct:
@@ -54,50 +54,70 @@ class Privatechat(TemplateView):
     
 
 
-    def index(request):
-        user = request.user
-        messages = Messages.get_message (user=user)
-        active_direct=None
-        directs=None
 
-        if messages:
-            message=messages[0]
-            active_direct= message["user "].username
-            directs = Messages.objects.filter(user=request.user, reciepient=message[ "user" ])
-            directs.update (is_read=True)
-
-            for message in messages:
-            
-                if message['user'].username==active_direct:
-                    message["unread"]=0
-
-
-        context={
-        "messages":messages,
-        "directs" :directs,
-        'user':user,
-        "active_directs":active_direct,
+class Direct(Privatechat):
         
-        }
+        def Directs(self, **kwargs ): 
+        
+            context = super().get_context_data(**kwargs)
 
-def Directs (request, username): 
+            # A function to init the global layout. It is defined in _keenthemes/__init__.py file
+            context = KTLayout.init(context)
 
-    user=request.user
-    messages = Messages.get_message (user=user)
-    active_directs=username
-    directs=Messages.objects.filter(user=user, reciepient__username=username)
-    directs.update(is_read=True)
 
-    for message in messages :
-        if message["user"].username == username:
-            message["unread"] = 0
-    context ={
-    "messages" :messages,
-    "directs" :directs,
-    "user" :user,
-    "active_directs" :active_directs,
-    }
-    return render(request,'pages/chat/privatechat.html',context)
+            user=self.request.user
+            messages = Messages.get_message (user=user)
+            active_directs= self.username
+            directs=Messages.objects.filter(user=user, reciepient__username=self.username)
+            directs.update(is_read=True)
+
+            for message in messages :
+                if message["user"].username == self.username:
+                    message["unread"] = 0
+
+            context ={
+            'layout': KTTheme.setLayout('default.html'),
+            "messages" :messages,
+            "directs" :directs,
+            "user" :user,
+            "active_directs" :active_directs,
+            }
+            return context
+
+#  def Directs (request, username): 
+
+#     user=request.user
+#     messages = Messages.get_message (user=user)
+#     active_directs=username
+#     directs=Messages.objects.filter(user=user, reciepient__username=username)
+#     directs.update(is_read=True)
+
+#     for message in messages :
+#         if message["user"].username == username:
+#             message["unread"] = 0
+
+#     context ={
+#     "messages" :messages,
+#     "directs" :directs,
+#     "user" :user,
+#     "active_directs" :active_directs,
+#     }
+#     return render(request,'pages/chat/privatechat.html',context)
+
+
+
+def sendDirect(request):
+    if request.method == "POST":
+        from_user = request.user
+        to_user_username = request.POST["to_user"]
+        body= request.POST["body"]
+
+
+        to_user = User.objects.filter(username=to_user_username)
+
+        Messages.sender_message(from_user, to_user, body)
+        success = "Message Sent"
+        return HttpResponse(success)
 
 # def chats(request):
 #         getData=request.Get.get('q')
