@@ -55,6 +55,9 @@ class Privatechat(LoginRequiredMixin , TemplateView):
 
 
 
+
+
+
 class Direct(Privatechat):
         
         def Directs(self, **kwargs ): 
@@ -84,6 +87,58 @@ class Direct(Privatechat):
             }
             return context
 
+def sendDirect(request):
+    if request.method == "POST":
+        from_user = request.user
+        to_user_username = request.POST["to_user"]
+        body= request.POST["body"]
+
+        to_user = User.objects.get(username=to_user_username)
+        Messages.sender_message(from_user, to_user, body)
+        success = "Message Sent"
+        return HttpResponse(success)  
+
+
+class messenger(TemplateView):
+
+
+    def get_context_data(self, **kwargs ):
+ 
+        context = super().get_context_data(**kwargs)
+
+
+        context = KTLayout.init(context)
+        allusers=User.objects.all()
+        user = self.request.user
+        messages = Messages.get_message(user=user)
+        active_direct=None
+        directs=None
+
+        if messages:
+            message = messages[0]
+            active_direct = message["user"].username
+            directs = Messages.objects.filter(user=self.request.user, reciepient=message["user"])
+            directs.update(is_read=True)
+
+            for message in messages:
+                if message['user'].username == active_direct:
+                    message["unread"]=0
+
+        context.update({
+            'layout': KTTheme.setLayout('default.html'),
+            'users': allusers,
+            "messages":messages,
+            "directs" :directs,
+            'user':user,
+            "active_directs":active_direct,
+        
+        })
+
+        return context
+
+
+
+
 #  def Directs (request, username): 
 
 #     user=request.user
@@ -105,19 +160,6 @@ class Direct(Privatechat):
 #     return render(request,'pages/chat/privatechat.html',context)
 
 
-
-def sendDirect(request):
-    if request.method == "POST":
-        from_user = request.user
-        to_user_username = request.POST["to_user"]
-        body= request.POST["body"]
-
-
-        to_user = User.objects.filter(username=to_user_username)
-
-        Messages.sender_message(from_user, to_user, body)
-        success = "Message Sent"
-        return HttpResponse(success)
 
 # def chats(request):
 #         getData=request.Get.get('q')

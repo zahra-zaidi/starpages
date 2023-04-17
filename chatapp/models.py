@@ -7,7 +7,7 @@ from django.db.models import Model , Max , Count , Sum
 class Messages(models.Model):
     user=models.ForeignKey(User , on_delete=models.CASCADE)
     sender=models.ForeignKey(User,on_delete=models.CASCADE,related_name='from_user')
-    reciepient=models.ForeignKey(User,on_delete=models.DO_NOTHING,related_name='to_user')
+    reciepient=models.ForeignKey(User,on_delete=models.CASCADE,related_name='to_user')
     body= models.TextField(null=True)
     date=models.DateTimeField(auto_now_add=True)
     is_read=models.BooleanField(default=False)

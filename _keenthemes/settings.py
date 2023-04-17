@@ -374,7 +374,7 @@ EMAIL_PORT=587
 EMAIL_HOST_USER="zahrazaidi005@gmail.com"
 EMAIL_HOST_PASSWORD='shyaitrguujvxltl'
 
-
+X_FRAME_OPTIONS="SAMEORIGIN"
 
 
 LOGIN_REDIRECT_URL = '/signin'
@@ -385,3 +385,5 @@ LOGIN_URL = '/signin'
 
 
 LOGOUT_REDIRECT_URL="/signin"
+
+
