@@ -4,7 +4,7 @@ from _keenthemes.__init__ import KTLayout
 from _keenthemes.libs.theme import KTTheme
 from django.contrib.auth.models import User 
 from django.http import HttpResponse,HttpResponseRedirect
-from .models import Messages
+from chatapp.models import ChatModel
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -25,113 +25,49 @@ class Privatechat(LoginRequiredMixin , TemplateView):
         # Include vendors and javascript files for dashboard widgets
         allusers=User.objects.all()
 
-        user = self.request.user
-        messages = Messages.get_message(user=user)
-        active_direct=None
-        directs=None
-
-        if messages:
-            message = messages[0]
-            active_direct = message["user"].username
-            directs = Messages.objects.filter(user=self.request.user, reciepient=message["user"])
-            directs.update(is_read=True)
-
-            for message in messages:
-                if message['user'].username == active_direct:
-                    message["unread"]=0
-
         context.update({
             'layout': KTTheme.setLayout('default.html'),
             'users': allusers,
-            "messages":messages,
-            "directs" :directs,
-            'user':user,
-            "active_directs":active_direct,
+
         
         })
 
         return context
     
 
-
-
-
-
-
-class Direct(Privatechat):
-        
-        def Directs(self, **kwargs ): 
-        
-            context = super().get_context_data(**kwargs)
-
-            # A function to init the global layout. It is defined in _keenthemes/__init__.py file
-            context = KTLayout.init(context)
-
-
-            user=self.request.user
-            messages = Messages.get_message (user=user)
-            active_directs= self.username
-            directs=Messages.objects.filter(user=user, reciepient__username=self.username)
-            directs.update(is_read=True)
-
-            for message in messages :
-                if message["user"].username == self.username:
-                    message["unread"] = 0
-
-            context ={
-            'layout': KTTheme.setLayout('default.html'),
-            "messages" :messages,
-            "directs" :directs,
-            "user" :user,
-            "active_directs" :active_directs,
-            }
-            return context
-
-def sendDirect(request):
-    if request.method == "POST":
-        from_user = request.user
-        to_user_username = request.POST["to_user"]
-        body= request.POST["body"]
-
-        to_user = User.objects.get(username=to_user_username)
-        Messages.sender_message(from_user, to_user, body)
-        success = "Message Sent"
-        return HttpResponse(success)  
-
-
-class messenger(TemplateView):
-
-
-    def get_context_data(self, **kwargs ):
- 
+class room(LoginRequiredMixin , TemplateView):
+    # Default template file
+    # Refer to dashboards/urls.py file for more pages and template files
+    template_name = 'pages/chat/privatechat.html'
+    # Predefined function
+    def get_context_data(self,username, **kwargs ):
+        # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-
+        # A function to init the global layout. It is defined in _keenthemes/__init__.py file
         context = KTLayout.init(context)
-        allusers=User.objects.all()
-        user = self.request.user
-        messages = Messages.get_message(user=user)
-        active_direct=None
-        directs=None
+        # KTTheme.addVendors(['amcharts', 'amcharts-maps', 'amcharts-stock'])
+        # KTTheme.addJavascriptFile('js/custom/apps/chat/chat.js')
 
-        if messages:
-            message = messages[0]
-            active_direct = message["user"].username
-            directs = Messages.objects.filter(user=self.request.user, reciepient=message["user"])
-            directs.update(is_read=True)
+        # Include vendors and javascript files for dashboard widgets
+        # allusers=User.objects.all()
+        user_obj=User.objects.get(username=username)
+        users=User.objects.exclude(username=self.request.user.username)
 
-            for message in messages:
-                if message['user'].username == active_direct:
-                    message["unread"]=0
+        if self.request.user.id > user_obj.id:
+            thread_name= f'chat_{self.request.user.id}-{user_obj.id}'
+        else:
+            thread_name= f'chat_{user_obj.id}-{self.request.user.id}'
+
+        message_obj=ChatModel.objects.filter(thread_name=thread_name)
+        username=self.request.user.username
 
         context.update({
             'layout': KTTheme.setLayout('default.html'),
-            'users': allusers,
-            "messages":messages,
-            "directs" :directs,
-            'user':user,
-            "active_directs":active_direct,
-        
+            'users': users,
+            'user':user_obj,
+            'User':username,
+            'messages':message_obj
         })
 
         return context

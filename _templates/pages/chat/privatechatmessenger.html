@@ -1,5 +1,3 @@
-
-
 <div class="card w-100 rounded-0 border-0" id="kt_drawer_chat_messenger">
     <!--begin::Card header-->
     <div class="card-header pe-5" id="kt_drawer_chat_messenger_header">
@@ -7,9 +5,9 @@
         <div class="card-title">
             <!--begin::User-->
 
-            
+
             <div class="d-flex justify-content-center flex-column me-3">
-                <a href="#" class="fs-4 fw-bold text-gray-900 text-hover-primary me-1 mb-2 lh-1">Brian Cox</a>
+                <a href="#" class="fs-4 fw-bold text-gray-900 text-hover-primary me-1 mb-2 lh-1">{{user.username}}</a>
                 <!--begin::Info-->
                 <div class="mb-0 lh-1">
                     <span class="badge badge-success badge-circle w-10px h-10px me-1"></span>
@@ -102,29 +100,29 @@
     </div>
     <!--end::Card header-->
     <!--begin::Card body-->
-    <div class="card-body" id="kt_drawer_chat_messenger_body">
+    <div class="card-body" >
         <!--begin::Messages-->
-        <div class="scroll-y me-n5 pe-5" data-kt-element="messages" data-kt-scroll="true" data-kt-scroll-activate="true"
+        <div id="kt_drawer_chat_messenger_body" class="scroll-y me-n5 pe-5" data-kt-element="messages" data-kt-scroll="true" data-kt-scroll-activate="true"
             data-kt-scroll-height="auto"
             data-kt-scroll-dependencies="#kt_drawer_chat_messenger_header, #kt_drawer_chat_messenger_footer"
             data-kt-scroll-wrappers="#kt_drawer_chat_messenger_body" data-kt-scroll-offset="0px">
 
             <!--begin::Message(in)-->
-            {% for direct in directs %}
 
-            {% if request.user == direct.sender %}
-         
+            {% for message in messages %}
+            {% if message.sender == request.user.username %}
             <!--end::Message(in)-->
             <!--begin::Message(out)-->
-       <div class="d-flex justify-content-end mb-10">
+            <div class="d-flex justify-content-end mb-10">
                 <!--begin::Wrapper-->
                 <div class="d-flex flex-column align-items-end">
                     <!--begin::User-->
                     <div class="d-flex align-items-center mb-2">
                         <!--begin::Details-->
                         <div class="me-3">
-                            <span class="text-muted fs-7 mb-1">{{direct.date| timesince}}</span>
-                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{direct.user.username}}</a>
+                            <span class="text-muted fs-7 mb-1">3 min</span>
+                            <a href="#"
+                                class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{message.sender}}</a>
                         </div>
                         <!--end::Details-->
                         <!--begin::Avatar-->
@@ -136,13 +134,13 @@
                     <!--end::User-->
                     <!--begin::Text-->
                     <div class="p-5 rounded bg-light-primary text-dark fw-semibold mw-lg-400px text-end"
-                        data-kt-element="message-text">{{direct.body}}</div>
+                        data-kt-element="message-text">{{message.message}}</div>
                     <!--end::Text-->
                 </div>
                 <!--end::Wrapper-->
             </div>
             {% else %}
-        <div class="d-flex justify-content-start mb-10">
+            <div class="d-flex justify-content-start mb-10">
                 <!--begin::Wrapper-->
                 <div class="d-flex flex-column align-items-start">
                     <!--begin::User-->
@@ -154,23 +152,21 @@
                         <!--end::Avatar-->
                         <!--begin::Details-->
                         <div class="ms-3">
-                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1">{{direct.sender.username}}</a>
-                            <span class="text-muted fs-7 mb-1">{{direct.date| timesince}}</span>
+                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1">{{user.username}}</a>
+                            <span class="text-muted fs-7 mb-1">3 min </span>
                         </div>
                         <!--end::Details-->
                     </div>
                     <!--end::User-->
                     <!--begin::Text-->
                     <div class="p-5 rounded bg-light-info text-dark fw-semibold mw-lg-400px text-start"
-                        data-kt-element="message-text">{{direct.body}}</div>
+                        data-kt-element="message-text">{{message.message}}</div>
                     <!--end::Text-->
                 </div>
                 <!--end::Wrapper-->
             </div>
-
             {% endif %}
             {% endfor %}
-
             <!--end::Message(in)-->
 
             <!--end::Message(template for out)-->
@@ -184,75 +180,132 @@
     <!--end::Card body-->
     <!--begin::Card footer-->
 
-    <form action="{% url 'send-direct' %}" method="POST" id="chat-form">
-        {% csrf_token %}
-        <div class="card-footer pt-4" id="kt_drawer_chat_messenger_footer">
-            <!--begin::Input-->
-            <input type="hidden" id="to_user" name="to_user" value="{{active_directs}}" />
-            <input id="body" name="body" class="form-control form-control-flush mb-3" rows="1" data-kt-element="input"
-                placeholder="Type a message" />
-            <!--end::Input-->
-            <!--begin:Toolbar-->
-            <div class="d-flex flex-stack">
-                <!--begin::Actions-->
-                <div class="d-flex align-items-center me-2">
-                    <button class="btn btn-sm btn-icon btn-active-light-primary me-1" type="button"
-                        data-bs-toggle="tooltip" title="Coming soon">
-                        <i class="bi bi-paperclip fs-3"></i>
-                    </button>
-                    <button class="btn btn-sm btn-icon btn-active-light-primary me-1" type="button"
-                        data-bs-toggle="tooltip" title="Coming soon">
-                        <i class="bi bi-upload fs-3"></i>
-                    </button>
-                </div>
-                <!--end::Actions-->
-                <!--begin::Send-->
-                <button class="btn btn-primary" type="submit" >Send</button>
-                <!--end::Send-->
+
+
+    <div class="card-footer pt-4" id="kt_drawer_chat_messenger_footer">
+        <!--begin::Input-->
+
+        <input id="chat-message-input" name="body" class="form-control form-control-flush mb-3" rows="1"
+            data-kt-element="input" placeholder="Type a message" />
+        <!--end::Input-->
+        <!--begin:Toolbar-->
+        <div class="d-flex flex-stack">
+            <!--begin::Actions-->
+            <div class="d-flex align-items-center me-2">
+                <button class="btn btn-sm btn-icon btn-active-light-primary me-1" type="button" data-bs-toggle="tooltip"
+                    title="Coming soon">
+                    <i class="bi bi-paperclip fs-3"></i>
+                </button>
+                <button class="btn btn-sm btn-icon btn-active-light-primary me-1" type="button" data-bs-toggle="tooltip"
+                    title="Coming soon">
+                    <i class="bi bi-upload fs-3"></i>
+                </button>
             </div>
-            <!--end::Toolbar-->
+            <!--end::Actions-->
+            <!--begin::Send-->
+            <button class="btn btn-primary" id="chat-message-submit" type="submit">Send</button>
+            <!--end::Send-->
         </div>
-    </form>
+        <!--end::Toolbar-->
+    </div>
 
-    <script type="text/javascript" >
-        $(document).on("submit", "#chat-form", function (e) {
-            e.preventDefault();
-            let _body = $("#body").val()
-            let _to_user = $("#to_user").val()
 
-            $.ajax({
-                type: "POST",
-                url: "{% url 'send-direct' %}",
+    {{ user.id|json_script:"json-username" }}
+    {{request.user.username|json_script:"json-message-username"}}
 
-                data: {
-                    body: _body,
-                    to_user: _to_user,
-                    csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
-                },
+    <script>
+        const id = JSON.parse(document.getElementById('json-username').textContent);
+        const message_username = JSON.parse(document.getElementById('json-message-username').textContent)
 
-                success: function (success) {
-                    let  _html = '<div class="d-flex justify-content-end mb-10" >\
-                            <div class="d-flex flex-column align-items-end">\
-                              <div class="d-flex align-items-center mb-2">\
-                                <div class="me-3">\
-                                <span class="text-muted fs-7 mb-1">{{direct.date| timesince}}</span>\
-                                <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{direct.user.username}}</a>\
-                            </div>\
-                            <div class="symbol symbol-35px symbol-circle">\
-                                <img alt="Pic" src="{% static "media/avatars/300-1.jpg" %}" />\
-                            </div>\
-                        </div>\
-                        <div class="p-5 rounded bg-light-primary text-dark fw-semibold mw-lg-400px text-end" data-kt-element="message-text">' + _body + '</div>\
-                    </div>\
-                 </div>\
-                 '
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/'
+            + id
+            + '/'
+        );
 
-                    $("#kt_drawer_chat_messenger_body").append(_html)
-                }
-            })
-            document.getElementById("body").value = ""
-        })
+        chatSocket.onopen = function (e) {
+            console.log("connection stable");
+        }
+
+        chatSocket.onclose = function (e) {
+            console.log('Chat socket closed unexpectedlyyy');
+        }
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+
+            if (data.username == message_username) {
+                document.querySelector('#kt_drawer_chat_messenger_body').innerHTML += `
+            
+            <div class="d-flex justify-content-end mb-10">
+              
+                <div class="d-flex flex-column align-items-end">
+                   
+                    <div class="d-flex align-items-center mb-2">
+                        
+                        <div class="me-3">
+                            <span class="text-muted fs-7 mb-1">3 min</span>
+                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">${data.username}</a>
+                        </div>
+                      
+                     
+                        <div class="symbol symbol-35px symbol-circle">
+                            <img alt="Pic" src="{% static 'media/avatars/300-1.jpg' %}" />
+                        </div>
+                       
+                    </div>
+                  
+                    <div class="p-5 rounded bg-light-primary text-dark fw-semibold mw-lg-400px text-end"
+                        data-kt-element="message-text">${data.message}</div>
+                  
+                </div>
+              
+            </div>
+            
+            `
+            } else {
+                document.querySelector('#kt_drawer_chat_messenger_body').innerHTML +=
+                    `
+            <div class="d-flex justify-content-start mb-10">
+                <!--begin::Wrapper-->
+                <div class="d-flex flex-column align-items-start">
+                    <!--begin::User-->
+                    <div class="d-flex align-items-center mb-2">
+                        <!--begin::Avatar-->
+                        <div class="symbol symbol-35px symbol-circle">
+                            <img alt="Pic" src="{% static 'media/avatars/300-25.jpg' %}" />
+                        </div>
+                        <!--end::Avatar-->
+                        <!--begin::Details-->
+                        <div class="ms-3">
+                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1">${data.username}</a>
+                            <span class="text-muted fs-7 mb-1">3 min </span>
+                        </div>
+                        <!--end::Details-->
+                    </div>
+                    <!--end::User-->
+                    <!--begin::Text-->
+                    <div class="p-5 rounded bg-light-info text-dark fw-semibold mw-lg-400px text-start"
+                        data-kt-element="message-text">${data.message}</div>
+                    <!--end::Text-->
+                </div>
+                <!--end::Wrapper-->
+            </div>
+            
+            `
+            }
+        };
+        document.querySelector('#chat-message-submit').onclick = function (e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': message_username,
+            }));
+            messageInputDom.value = '';
+        };
+
     </script>
-
     <!--end::Card footer-->
 </div>

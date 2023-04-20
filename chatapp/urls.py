@@ -5,7 +5,5 @@ from chatapp import views
 
 urlpatterns = [
     path('privatechat/', Privatechat.as_view(template_name = 'pages/chat/privatechat.html'), name='chat'),
-    path('directchat/<username>', Direct.as_view(template_name = 'pages/chat/privatechat.html') , name="direct"),
-    path('send/', views.sendDirect , name='send-direct'),
-    path("messenger/" , messenger.as_view(template_name = 'pages/chat/privatechatmessenger.html') , name="messenger")
+    path('<str:username>/', room.as_view(template_name = 'pages/chat/privatechat.html'), name='room'),
 ]
