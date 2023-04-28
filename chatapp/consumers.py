@@ -3,18 +3,16 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import  AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import ChatModel
-
-
-
-
-
+from .models import ChatModel ,Chat
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
         my_id= self.scope['user'].id
         other_user_id=self.scope['url_route']['kwargs']['id']
+        await self.chatid(my_id , other_user_id)
 
         if int(my_id) > int(other_user_id):
             self.room_name=f'{my_id}-{other_user_id}'
@@ -24,7 +22,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = 'chat_%s' % self.room_name
 
         
-
+        
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -46,14 +44,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = text_data_json['message']
         username=text_data_json['username']
 
-        await self.save_message(username,self.room_group_name ,message)
+
+
+        # this line is saving mesages in db
+        # await self.save_message(username,self.room_group_name ,message)
+
+
+
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message ,
-                'username':username
+                'username':username,
+                
             }
         )
 
@@ -69,6 +74,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     "message": _message,
                     "username": _username,
+                    'timestamp': timezone.now().isoformat()
                 }
             )
         )
@@ -78,3 +84,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, username , thread_name, message):
         ChatModel.objects.create(sender=username,message=message, thread_name=thread_name)
+    
+
+    @database_sync_to_async
+    def chatid(self, username , otherusername):
+        _user1=User.objects.get(id=username)
+        _user2=User.objects.get(id=otherusername)
+        Chat.objects.create(user1=_user1,user2=_user2)

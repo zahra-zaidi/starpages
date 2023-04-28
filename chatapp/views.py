@@ -60,6 +60,7 @@ class room(LoginRequiredMixin , TemplateView):
             thread_name= f'chat_{user_obj.id}-{self.request.user.id}'
 
         message_obj=ChatModel.objects.filter(thread_name=thread_name)
+
         username=self.request.user.username
 
         context.update({
